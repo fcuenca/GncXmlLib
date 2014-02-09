@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Aug 2012: A RELAX NG Compact schema for gnucash "v2" XML files.
+  Copyright (C) 2006 Joshua Sled <jsled@asynchronous.org>
+  Copyright (C) 2012 Baptiste Carvello <devel@baptiste-carvello.net>
+-->
+<!--
+  This schema is non-normative; files emitted by gnucash <= 2.0 (and perhaps
+  later) that do not validate against it likely represent a problem with the
+  schema, not the file. The schema was last updated for gnucash trunk, rev 22330.
+-->
+<!-- http://relaxng.org/compact-tutorial-20030326.html -->
+<!-- from write_v2_header in src/backend/xml/io-gncxml-v2.c -->
+<!--
+  as per gnucash/LICENSE, this file is licensed under GPL Version 2,
+  or (at your option) Version 3.
+-->
+<!--
+  plugins, in order (address, owner, bill-term, customer, employee, entry, invoice,
+  job, order, tax-table, vendor)
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.gnucash.org/XML/gnc" xmlns:act="http://www.gnucash.org/XML/act" xmlns:slot="http://www.gnucash.org/XML/slot" xmlns:entry="http://www.gnucash.org/XML/entry" xmlns:tte="http://www.gnucash.org/XML/tte" xmlns:split="http://www.gnucash.org/XML/split" xmlns:job="http://www.gnucash.org/XML/job" xmlns:bgt="http://www.gnucash.org/XML/bgt" xmlns:sx="http://www.gnucash.org/XML/sx" xmlns:lot="http://www.gnucash.org/XML/lot" xmlns:gnc="http://www.gnucash.org/XML/gnc" xmlns:cust="http://www.gnucash.org/XML/cust" xmlns:invoice="http://www.gnucash.org/XML/invoice" xmlns:addr="http://www.gnucash.org/XML/addr" xmlns:cmdty="http://www.gnucash.org/XML/cmdty" xmlns:book="http://www.gnucash.org/XML/book" xmlns:recurrence="http://www.gnucash.org/XML/recurrence" xmlns:trn="http://www.gnucash.org/XML/trn" xmlns:vendor="http://www.gnucash.org/XML/vendor" xmlns:price="http://www.gnucash.org/XML/price" xmlns:employee="http://www.gnucash.org/XML/employee" xmlns:ts="http://www.gnucash.org/XML/ts" xmlns:cd="http://www.gnucash.org/XML/cd" xmlns:owner="http://www.gnucash.org/XML/owner" xmlns:bt-days="http://www.gnucash.org/XML/bt-days" xmlns:taxtable="http://www.gnucash.org/XML/taxtable" xmlns:order="http://www.gnucash.org/XML/order" xmlns:bt-prox="http://www.gnucash.org/XML/bt-prox" xmlns:billterm="http://www.gnucash.org/XML/billterm">
+  <xs:import namespace="http://www.gnucash.org/XML/act" schemaLocation="act.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/addr" schemaLocation="addr.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/bgt" schemaLocation="bgt.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/billterm" schemaLocation="billterm.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/book" schemaLocation="book.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/bt-days" schemaLocation="bt-days.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/bt-prox" schemaLocation="bt-prox.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/cd" schemaLocation="cd.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/cmdty" schemaLocation="cmdty.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/cust" schemaLocation="cust.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/employee" schemaLocation="employee.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/entry" schemaLocation="entry.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/invoice" schemaLocation="invoice.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/job" schemaLocation="job.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/lot" schemaLocation="lot.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/order" schemaLocation="order.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/owner" schemaLocation="owner.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/price" schemaLocation="price.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/recurrence" schemaLocation="recurrence.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/slot" schemaLocation="slot.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/split" schemaLocation="split.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/sx" schemaLocation="sx.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/taxtable" schemaLocation="taxtable.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/trn" schemaLocation="trn.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/ts" schemaLocation="ts.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/tte" schemaLocation="tte.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/vendor" schemaLocation="vendor.xsd"/>
+  <!-- from write_book in src/backend/xml/io-gncxml-v2.c -->
+  <xs:element name="count-data">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:int">
+          <xs:attribute ref="cd:type" use="required"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <!-- from write_book in src/backend/xml/io-gncxml-v2.c -->
+  <xs:element name="book">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="book:id"/>
+        <xs:element minOccurs="0" ref="book:slots"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:count-data"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:commodity"/>
+        <xs:element minOccurs="0" ref="gnc:pricedb"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:account"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:transaction"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:template-transactions"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:schedxaction"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:budget"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncBillTerm"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncCustomer"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncEmployee"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncEntry"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncInvoice"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncJob"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncOrder"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncTaxTable"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:GncVendor"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from src/backend/xml/sixtp-dom-generators.c -->
+  <xs:group name="KvpSlot">
+    <xs:sequence>
+      <xs:element name="slot" form="unqualified">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="slot:key"/>
+            <xs:element ref="slot:value"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <!-- various patterns -->
+  <xs:simpleType name="GncNumeric">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="-?[0-9]+/-?[0-9]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="GUID">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-f]{32}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:group name="TimeSpec">
+    <xs:sequence>
+      <xs:element ref="ts:date"/>
+      <xs:element minOccurs="0" ref="ts:ns"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:group name="GDate">
+    <xs:sequence>
+      <xs:element name="gdate" form="unqualified">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{4}-[0-9]{2}-[0-9]{2}"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <!-- from gnc_commodity_dom_tree_create in src/backend/xml/gnc-commodity-xml-v2.c -->
+  <xs:element name="commodity">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:sequence>
+          <xs:element ref="cmdty:space"/>
+          <xs:element ref="cmdty:id"/>
+          <xs:element minOccurs="0" ref="cmdty:name"/>
+          <xs:element minOccurs="0" ref="cmdty:xcode"/>
+          <xs:element minOccurs="0" ref="cmdty:fraction"/>
+        </xs:sequence>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="cmdty:get_quotes"/>
+          <xs:element minOccurs="0" ref="cmdty:quote_source"/>
+          <xs:element minOccurs="0" ref="cmdty:quote_tz"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="cmdty:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_pricedb_to_dom_tree in src/backend/xml/gnc-pricedb-xml-v2.c -->
+  <xs:element name="pricedb">
+    <xs:complexType>
+      <xs:group maxOccurs="unbounded" ref="gnc:Price"/>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="1"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_price_to_dom_tree in src/backend/xml/gnc-pricedb-xml-v2.c -->
+  <xs:group name="Price">
+    <xs:sequence>
+      <xs:element name="price" form="unqualified">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="price:id"/>
+            <xs:element ref="price:commodity"/>
+            <xs:element ref="price:currency"/>
+            <xs:element ref="price:time"/>
+            <xs:element minOccurs="0" ref="price:source"/>
+            <xs:element minOccurs="0" ref="price:type"/>
+            <xs:element ref="price:value"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:group>
+  <!-- from gnc_account_dom_tree_create in src/backend/xml/gnc-account-xml-v2.c -->
+  <xs:element name="account">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="act:name"/>
+        <xs:element ref="act:id"/>
+        <xs:element ref="act:type"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="act:commodity"/>
+          <xs:element ref="act:commodity-scu"/>
+          <xs:element minOccurs="0" ref="act:non-standard-scu"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="act:code"/>
+        <xs:element minOccurs="0" ref="act:description"/>
+        <xs:element minOccurs="0" ref="act:slots"/>
+        <xs:element minOccurs="0" ref="act:parent"/>
+        <xs:element minOccurs="0" ref="act:lots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_lot_dom_tree_create in src/backend/xml/gnc-lot-xml-v2.c -->
+  <xs:element name="lot">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="lot:id"/>
+        <xs:element ref="lot:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_transaction_dom_tree_create in src/backend/xml/gnc-transaction-xml-v2.c -->
+  <xs:element name="transaction">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="trn:id"/>
+        <xs:element ref="trn:currency"/>
+        <xs:element minOccurs="0" ref="trn:num"/>
+        <xs:element ref="trn:date-posted"/>
+        <xs:element ref="trn:date-entered"/>
+        <xs:element minOccurs="0" ref="trn:description"/>
+        <xs:element minOccurs="0" ref="trn:slots"/>
+        <xs:element ref="trn:splits"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from split_to_dom_tree in src/backend/xml/gnc-transaction-xml-v2.c -->
+  <!-- from write_template_transaction_data in src/backend/xml/io-gncxml-v2.c -->
+  <xs:element name="template-transactions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:account"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="gnc:transaction"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_schedXaction_dom_tree_create in src/backend/xml/gnc-schedxaction-xml-v2.c -->
+  <xs:element name="schedxaction">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="sx:id"/>
+        <xs:element ref="sx:name"/>
+        <xs:element ref="sx:enabled"/>
+        <xs:element ref="sx:autoCreate"/>
+        <xs:element ref="sx:autoCreateNotify"/>
+        <xs:element ref="sx:advanceCreateDays"/>
+        <xs:element ref="sx:advanceRemindDays"/>
+        <xs:element ref="sx:instanceCount"/>
+        <xs:element ref="sx:start"/>
+        <xs:element minOccurs="0" ref="sx:last"/>
+        <xs:choice minOccurs="0">
+          <xs:sequence>
+            <xs:element ref="sx:num-occur"/>
+            <xs:element ref="sx:rem-occur"/>
+          </xs:sequence>
+          <xs:element ref="sx:end"/>
+        </xs:choice>
+        <xs:element ref="sx:templ-acct"/>
+        <xs:element ref="sx:schedule"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="sx:deferredInstance"/>
+        <xs:element minOccurs="0" ref="sx:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="recurrence" type="gnc:RecurrenceContent"/>
+  <!-- from recurrence_to_dom_tree in src/backend/xml/gnc-recurrence-xml-v2.c -->
+  <xs:complexType name="RecurrenceContent">
+    <xs:sequence>
+      <xs:element ref="recurrence:mult"/>
+      <xs:element ref="recurrence:period_type"/>
+      <xs:element ref="recurrence:start"/>
+      <xs:element minOccurs="0" ref="recurrence:weekend_adj"/>
+    </xs:sequence>
+    <xs:attribute name="version" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="1.0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <!-- from gnc_budget_dom_tree_create in src/backend/xml/gnc-budget-xml-v2.c -->
+  <xs:element name="budget">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="bgt:id"/>
+        <xs:element ref="bgt:name"/>
+        <xs:element ref="bgt:description"/>
+        <xs:element ref="bgt:num-periods"/>
+        <xs:element ref="bgt:recurrence"/>
+        <xs:element minOccurs="0" ref="bgt:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from in src/backend/xml/gnc-bill-term-xml-v2.c -->
+  <xs:element name="GncBillTerm">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="billterm:guid"/>
+        <xs:element ref="billterm:name"/>
+        <xs:element ref="billterm:desc"/>
+        <xs:element ref="billterm:refcount"/>
+        <xs:element ref="billterm:invisible"/>
+        <xs:element minOccurs="0" ref="billterm:slots"/>
+        <xs:element minOccurs="0" ref="billterm:child"/>
+        <xs:element minOccurs="0" ref="billterm:parent"/>
+        <xs:choice>
+          <xs:element ref="billterm:days"/>
+          <xs:element ref="billterm:proximo"/>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from customer_dom_tree_create in src/backend/xml/gnc-customer-xml-v2.c -->
+  <xs:element name="GncCustomer">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="cust:guid"/>
+        <xs:element ref="cust:name"/>
+        <xs:element ref="cust:id"/>
+        <xs:element ref="cust:addr"/>
+        <xs:element ref="cust:shipaddr"/>
+        <xs:element minOccurs="0" ref="cust:notes"/>
+        <xs:element minOccurs="0" ref="cust:terms"/>
+        <xs:element ref="cust:taxincluded"/>
+        <xs:element ref="cust:active"/>
+        <xs:element ref="cust:discount"/>
+        <xs:element ref="cust:credit"/>
+        <xs:element ref="cust:currency"/>
+        <xs:element ref="cust:use-tt"/>
+        <xs:element minOccurs="0" ref="cust:taxtable"/>
+        <xs:element minOccurs="0" ref="cust:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_address_to_dom_tree in src/backend/xml/gnc-address-xml-v2.c -->
+  <xs:complexType name="AddressContent">
+    <xs:sequence minOccurs="0">
+      <xs:element minOccurs="0" ref="addr:name"/>
+      <xs:element minOccurs="0" ref="addr:addr1"/>
+      <xs:element minOccurs="0" ref="addr:addr2"/>
+      <xs:element minOccurs="0" ref="addr:addr3"/>
+      <xs:element minOccurs="0" ref="addr:addr4"/>
+      <xs:element minOccurs="0" ref="addr:phone"/>
+      <xs:element minOccurs="0" ref="addr:fax"/>
+      <xs:element minOccurs="0" ref="addr:email"/>
+    </xs:sequence>
+    <xs:attribute name="version" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="2.0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <!-- from employee_dom_tree_create in src/backend/xml/gnc-employee-xml-v2.c -->
+  <xs:element name="GncEmployee">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="employee:guid"/>
+        <xs:element ref="employee:username"/>
+        <xs:element ref="employee:id"/>
+        <xs:element ref="employee:addr"/>
+        <xs:element minOccurs="0" ref="employee:language"/>
+        <xs:element minOccurs="0" ref="employee:acl"/>
+        <xs:element ref="employee:active"/>
+        <xs:element ref="employee:workday"/>
+        <xs:element ref="employee:rate"/>
+        <xs:element ref="employee:currency"/>
+        <xs:element minOccurs="0" ref="employee:ccard"/>
+        <xs:element minOccurs="0" ref="employee:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from entry_dom_tree_create in src/backend/xml/gnc-entry-xml-v2.c -->
+  <xs:element name="GncEntry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="entry:guid"/>
+        <xs:element ref="entry:date"/>
+        <xs:element ref="entry:entered"/>
+        <xs:element minOccurs="0" ref="entry:description"/>
+        <xs:element minOccurs="0" ref="entry:action"/>
+        <xs:element minOccurs="0" ref="entry:notes"/>
+        <xs:element minOccurs="0" ref="entry:qty"/>
+        <xs:element minOccurs="0" ref="entry:i-acct"/>
+        <xs:element minOccurs="0" ref="entry:i-price"/>
+        <xs:element minOccurs="0" ref="entry:i-discount"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="entry:invoice"/>
+          <xs:element ref="entry:i-disc-type"/>
+          <xs:element ref="entry:i-disc-how"/>
+          <xs:element ref="entry:i-taxable"/>
+          <xs:element ref="entry:i-taxincluded"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="entry:i-taxtable"/>
+        <xs:element minOccurs="0" ref="entry:b-acct"/>
+        <xs:element minOccurs="0" ref="entry:b-price"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="entry:bill"/>
+          <xs:element ref="entry:billable"/>
+          <xs:element minOccurs="0" ref="entry:billto"/>
+          <xs:element ref="entry:b-taxable"/>
+          <xs:element ref="entry:b-taxincluded"/>
+          <xs:element minOccurs="0" ref="entry:b-pay"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="entry:b-taxtable"/>
+        <xs:element minOccurs="0" ref="entry:order"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from gnc_owner_to_dom_tree in src/backend/xml/gnc-owner-xml-v2.c -->
+  <xs:complexType name="OwnerContent">
+    <xs:sequence>
+      <xs:element ref="owner:type"/>
+      <xs:element ref="owner:id"/>
+    </xs:sequence>
+    <xs:attribute name="version" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="2.0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <!-- from invoice_dom_tree_create in src/backend/xml/gnc-invoice-xml-v2.c -->
+  <xs:element name="GncInvoice">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="invoice:guid"/>
+        <xs:element ref="invoice:id"/>
+        <xs:element ref="invoice:owner"/>
+        <xs:element ref="invoice:opened"/>
+        <xs:element minOccurs="0" ref="invoice:posted"/>
+        <xs:element minOccurs="0" ref="invoice:terms"/>
+        <xs:element minOccurs="0" ref="invoice:billing_id"/>
+        <xs:element minOccurs="0" ref="invoice:notes"/>
+        <xs:element ref="invoice:active"/>
+        <xs:element minOccurs="0" ref="invoice:posttxn"/>
+        <xs:element minOccurs="0" ref="invoice:postlot"/>
+        <xs:element minOccurs="0" ref="invoice:postacc"/>
+        <xs:element ref="invoice:currency"/>
+        <xs:element minOccurs="0" ref="invoice:billto"/>
+        <xs:element minOccurs="0" ref="invoice:charge-amt"/>
+        <xs:element minOccurs="0" ref="invoice:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from job_dom_tree_create in src/backend/xml/gnc-job-xml-v2.c -->
+  <xs:element name="GncJob">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="job:guid"/>
+        <xs:element ref="job:id"/>
+        <xs:element ref="job:name"/>
+        <xs:element minOccurs="0" ref="job:reference"/>
+        <xs:element ref="job:owner"/>
+        <xs:element ref="job:active"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from order_dom_tree_create in src/backend/xml/gnc-order-xml-v2.c -->
+  <xs:element name="GncOrder">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="order:guid"/>
+        <xs:element ref="order:id"/>
+        <xs:element ref="order:owner"/>
+        <xs:element ref="order:opened"/>
+        <xs:element minOccurs="0" ref="order:closed"/>
+        <xs:element minOccurs="0" ref="order:notes"/>
+        <xs:element minOccurs="0" ref="order:reference"/>
+        <xs:element ref="order:active"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from taxtable_dom_tree_create in src/backend/xml/gnc-tax-table-xml-v2.c -->
+  <xs:element name="GncTaxTable">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="taxtable:guid"/>
+        <xs:element ref="taxtable:name"/>
+        <xs:element ref="taxtable:refcount"/>
+        <xs:element ref="taxtable:invisible"/>
+        <xs:element minOccurs="0" ref="taxtable:child"/>
+        <xs:element minOccurs="0" ref="taxtable:parent"/>
+        <xs:element ref="taxtable:entries"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- from ttentry_dom_tree_create in src/backend/xml/gnc-tax-table-xml-v2.c -->
+  <xs:element name="GncTaxTableEntry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="tte:acct"/>
+        <xs:element ref="tte:amount"/>
+        <xs:element ref="tte:type"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <!-- from vendor_dom_tree_create in src/backend/xml/gnc-vendor-xml-v2.c -->
+  <xs:element name="GncVendor">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="vendor:guid"/>
+        <xs:element ref="vendor:name"/>
+        <xs:element ref="vendor:id"/>
+        <xs:element ref="vendor:addr"/>
+        <xs:element minOccurs="0" ref="vendor:notes"/>
+        <xs:element minOccurs="0" ref="vendor:terms"/>
+        <xs:element ref="vendor:taxincluded"/>
+        <xs:element ref="vendor:active"/>
+        <xs:element ref="vendor:currency"/>
+        <xs:element ref="vendor:use-tt"/>
+        <xs:element minOccurs="0" ref="vendor:taxtable"/>
+        <xs:element minOccurs="0" ref="vendor:slots"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:enumeration value="2.0.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

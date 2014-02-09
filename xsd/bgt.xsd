@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.gnucash.org/XML/bgt" xmlns:act="http://www.gnucash.org/XML/act" xmlns:slot="http://www.gnucash.org/XML/slot" xmlns:entry="http://www.gnucash.org/XML/entry" xmlns:tte="http://www.gnucash.org/XML/tte" xmlns:split="http://www.gnucash.org/XML/split" xmlns:job="http://www.gnucash.org/XML/job" xmlns:bgt="http://www.gnucash.org/XML/bgt" xmlns:sx="http://www.gnucash.org/XML/sx" xmlns:lot="http://www.gnucash.org/XML/lot" xmlns:gnc="http://www.gnucash.org/XML/gnc" xmlns:cust="http://www.gnucash.org/XML/cust" xmlns:invoice="http://www.gnucash.org/XML/invoice" xmlns:addr="http://www.gnucash.org/XML/addr" xmlns:cmdty="http://www.gnucash.org/XML/cmdty" xmlns:book="http://www.gnucash.org/XML/book" xmlns:recurrence="http://www.gnucash.org/XML/recurrence" xmlns:trn="http://www.gnucash.org/XML/trn" xmlns:vendor="http://www.gnucash.org/XML/vendor" xmlns:price="http://www.gnucash.org/XML/price" xmlns:employee="http://www.gnucash.org/XML/employee" xmlns:ts="http://www.gnucash.org/XML/ts" xmlns:cd="http://www.gnucash.org/XML/cd" xmlns:owner="http://www.gnucash.org/XML/owner" xmlns:bt-days="http://www.gnucash.org/XML/bt-days" xmlns:taxtable="http://www.gnucash.org/XML/taxtable" xmlns:order="http://www.gnucash.org/XML/order" xmlns:bt-prox="http://www.gnucash.org/XML/bt-prox" xmlns:billterm="http://www.gnucash.org/XML/billterm">
+  <xs:import namespace="http://www.gnucash.org/XML/act" schemaLocation="act.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/addr" schemaLocation="addr.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/billterm" schemaLocation="billterm.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/book" schemaLocation="book.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/bt-days" schemaLocation="bt-days.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/bt-prox" schemaLocation="bt-prox.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/cd" schemaLocation="cd.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/cmdty" schemaLocation="cmdty.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/cust" schemaLocation="cust.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/employee" schemaLocation="employee.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/entry" schemaLocation="entry.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/gnc" schemaLocation="gnc.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/invoice" schemaLocation="invoice.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/job" schemaLocation="job.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/lot" schemaLocation="lot.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/order" schemaLocation="order.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/owner" schemaLocation="owner.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/price" schemaLocation="price.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/recurrence" schemaLocation="recurrence.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/slot" schemaLocation="slot.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/split" schemaLocation="split.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/sx" schemaLocation="sx.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/taxtable" schemaLocation="taxtable.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/trn" schemaLocation="trn.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/ts" schemaLocation="ts.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/tte" schemaLocation="tte.xsd"/>
+  <xs:import namespace="http://www.gnucash.org/XML/vendor" schemaLocation="vendor.xsd"/>
+  <xs:element name="id">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="gnc:GUID">
+          <xs:attribute name="type" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="guid"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="name" type="xs:string"/>
+  <xs:element name="description" type="xs:string"/>
+  <xs:element name="num-periods" type="xs:int"/>
+  <xs:element name="recurrence" type="gnc:RecurrenceContent"/>
+  <xs:element name="slots">
+    <xs:complexType>
+      <xs:group maxOccurs="unbounded" ref="gnc:KvpSlot"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
