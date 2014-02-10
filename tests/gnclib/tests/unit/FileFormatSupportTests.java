@@ -2,7 +2,6 @@ package gnclib.tests.unit;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import gnclib.GncFile;
 
 import java.io.FileNotFoundException;
@@ -14,53 +13,25 @@ public class FileFormatSupportTests
 {
 
 	@Test
-	public void can_handle_uncompressed_gnc_xml_files()
+	public void can_handle_uncompressed_gnc_xml_files() throws IOException
 	{
-		try
-		{
-			GncFile gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		GncFile gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
 
-			assertThat(gnc.getTransactionCount(), is(2));
-		}
-		catch (IOException e)
-		{
-			fail(e.getMessage());
-		}
+		assertThat(gnc.getTransactionCount(), is(2));
 	}
 
 	@Test
-	public void can_handle_compressed_gnc_xml_files()
+	public void can_handle_compressed_gnc_xml_files() throws IOException
 	{
-		try
-		{
-			GncFile gnc = new GncFile(getClass().getResource("checkbook.xml.gz").getPath());
+		GncFile gnc = new GncFile(getClass().getResource("checkbook.xml.gz").getPath());
 
-			assertThat(gnc.getTransactionCount(), is(2));
-
-		}
-		catch (IOException e)
-		{
-			fail(e.getMessage());
-		}
+		assertThat(gnc.getTransactionCount(), is(2));
 	}
 
-	@Test
-	public void invalid_path_throws_exception()
+	@Test(expected = FileNotFoundException.class)
+	public void invalid_path_throws_exception() throws IOException
 	{
-		try
-		{
-			new GncFile("/does/not/exist.xml");
-
-			fail("This should not have happened!");
-		}
-		catch (FileNotFoundException e)
-		{
-			// this is the expected behaviour
-		}
-		catch (IOException e)
-		{
-			fail(e.getMessage());
-		}
+		new GncFile("/does/not/exist.xml");
 	}
 
 }
