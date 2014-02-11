@@ -85,54 +85,54 @@ public class GncFile
 	{
 		Transaction newTx = new Transaction();
 
-		newTx.setVersion("2.0.0");
-		newTx.setDescription(description);
-		newTx.setId(newGncId());
-		newTx.setCurrency(newCADCurrency());
-
-		setTxDates(date, newTx);
-
-		// int ammount = (int) (txAmount * 100);
-		//
-		Split target = new Split();
-		// org.gnucash.xml.split.Id creditId = new org.gnucash.xml.split.Id();
-		// creditId.setType("guid");
-		// creditId.setValue(UUID.randomUUID().toString().replace("-", ""));
-		// credit.setId(creditId);
-		// credit.setReconciledState("n");
-		// credit.setValue(-1 * ammount + "/100");
-		// credit.setQuantity(-1 * ammount + "/100");
-		// org.gnucash.xml.split.Account creditAcc = new
-		// org.gnucash.xml.split.Account();
-		// creditAcc.setType("guid");
-		// creditAcc.setValue(accountId1); // TODO: look up acc id
-		// credit.setAccount(creditAcc);
-		//
-		Split source = new Split();
-		// org.gnucash.xml.split.Id debitId = new org.gnucash.xml.split.Id();
-		// debitId.setType("guid");
-		// debitId.setValue(UUID.randomUUID().toString().replace("-", ""));
-		// debit.setId(debitId);
-		// debit.setReconciledState("n");
-		// debit.setValue(ammount + "/100");
-		// debit.setQuantity(ammount + "/100");
-		// org.gnucash.xml.split.Account debitAcc = new
-		// org.gnucash.xml.split.Account();
-		// debitAcc.setType("guid");
-		// debitAcc.setValue(accountId2); // TODO:
-		// // look up
-		// // acc id
-		// debit.setAccount(debitAcc);
-
-		Splits txSplits = new Splits();
-		txSplits.getSplit().add(source);
-		txSplits.getSplit().add(target);
-		newTx.setSplits(txSplits);
+		setBasicAttributes(newTx, description);
+		setTxDates(newTx, date);
+		setSplits(newTx, amount, sourceAccountId, targetAccountId);
 
 		return newTx;
 	}
 
-	private void setTxDates(Date date, Transaction newTx)
+	private void setBasicAttributes(Transaction newTx, String description)
+	{
+		newTx.setVersion("2.0.0");
+		newTx.setDescription(description);
+		newTx.setId(newGncId());
+		newTx.setCurrency(newCADCurrency());
+	}
+
+	private void setSplits(Transaction newTx, double amount, String sourceAccountId, String targetAccountId)
+	{
+		int amountAsInt = (int) (amount * 100);
+
+		Splits txSplits = new Splits();
+		txSplits.getSplit().add(newSplit(-1 * amountAsInt, targetAccountId));
+		txSplits.getSplit().add(newSplit(amountAsInt, sourceAccountId));
+		newTx.setSplits(txSplits);
+	}
+
+	private Split newSplit(int amountAsInt, String accountId)
+	{
+		Split split = new Split();
+
+		split.setReconciledState("n");
+
+		org.gnucash.xml.split.Id splitId = new org.gnucash.xml.split.Id();
+		splitId.setType("guid");
+		splitId.setValue(UUID.randomUUID().toString().replace("-", ""));
+		split.setId(splitId);
+
+		split.setValue(amountAsInt + "/100");
+		split.setQuantity(amountAsInt + "/100");
+
+		org.gnucash.xml.split.Account splitAccount = new org.gnucash.xml.split.Account();
+		splitAccount.setType("guid");
+		splitAccount.setValue(accountId);
+		split.setAccount(splitAccount);
+
+		return split;
+	}
+
+	private void setTxDates(Transaction newTx, Date date)
 	{
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 

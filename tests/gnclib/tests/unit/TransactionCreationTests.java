@@ -1,5 +1,8 @@
 package gnclib.tests.unit;
 
+import static gnclib.tests.utils.RegexMatcher.matchesPattern;
+import static gnclib.tests.utils.GncIdMatcher.validSplitId;
+import static gnclib.tests.utils.GncIdMatcher.validTrnId;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -7,16 +10,11 @@ import gnclib.GncFile;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
 import org.gnucash.xml.gnc.Transaction;
-import org.gnucash.xml.trn.Id;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.gnucash.xml.trn.Split;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.internal.matchers.TypeSafeMatcher;
 
 public class TransactionCreationTests
 {
@@ -30,7 +28,7 @@ public class TransactionCreationTests
 		@SuppressWarnings("deprecation")
 		Date date = new Date(2014 - 1900, 4, 10, 15, 35, 7);
 
-		_tx = gnc.addTransaction(date, "Coffee w/John", -9.95,
+		_tx = gnc.addTransaction(date, "Coffee w/John", -9.33,
 				"64833494284bad5fb390e84d38c65a54", "e31486ad3b2c6cdedccf135d13538b29");
 
 	}
@@ -68,95 +66,19 @@ public class TransactionCreationTests
 		assertThat(_tx.getSplits(), is(notNullValue()));
 		assertThat(_tx.getSplits().getSplit().size(), is(2));
 
-		// assertThat(_tx.getSplits().getSplit().get(0), is())
+		assertSplitEquals(_tx.getSplits().getSplit().get(0), "933/100", "e31486ad3b2c6cdedccf135d13538b29");
+		assertSplitEquals(_tx.getSplits().getSplit().get(1), "-933/100", "64833494284bad5fb390e84d38c65a54");
 	}
 
-	private Matcher<Id> validTrnId()
+	private void assertSplitEquals(Split split, String expectedAmount, String expectedAccountId)
 	{
-		return new TypeSafeMatcher<Id>()
-		{
-			private String _msg;
-
-			@Override
-			public void describeTo(Description description)
-			{
-				description.appendText("not a valid Gnc ID: " + _msg);
-			}
-
-			@Override
-			public boolean matchesSafely(Id item)
-			{
-				return typeIsSetToGuid(item) && dashesHaveBeenRemoved(item) && valueIsValidUUIDstring(item);
-			}
-
-			private boolean valueIsValidUUIDstring(Id item)
-			{
-				String hexStringWithInsertedHyphens = item.getValue().replaceFirst(
-						"(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
-						"$1-$2-$3-$4-$5");
-
-				try
-				{
-					UUID.fromString(hexStringWithInsertedHyphens);
-					return true;
-				}
-				catch (IllegalArgumentException e)
-				{
-					_msg = "is not a valid UUID: " + item.getValue();
-					return false;
-				}
-			}
-
-			private boolean dashesHaveBeenRemoved(Id item)
-			{
-				if (item.getValue() != null && item.getValue().indexOf('-') == -1)
-				{
-					return true;
-				}
-				else
-				{
-					_msg = "dashes haven't been removed in " + item.getValue();
-					return false;
-				}
-			}
-
-			private boolean typeIsSetToGuid(Id item)
-			{
-				if (item.getType() != null && item.getType().equals("guid"))
-				{
-					return true;
-				}
-				else
-				{
-					_msg = "type not set or not set to guid";
-					return false;
-				}
-			}
-
-		};
+		assertThat("split ID", split.getId(), is(validSplitId()));
+		assertThat(split.getReconciledState(), is("n"));
+		assertThat(split.getValue(), is(expectedAmount));
+		assertThat(split.getQuantity(), is(expectedAmount));
+		assertThat(split.getAccount(), is(notNullValue()));
+		assertThat(split.getAccount().getType(), is("guid"));
+		assertThat(split.getAccount().getValue(), is(expectedAccountId));
 	}
 
-	private Matcher<String> matchesPattern(final String regex)
-	{
-		return new TypeSafeMatcher<String>()
-		{
-
-			private Pattern _pattern = Pattern.compile(regex);
-
-			@Override
-			public void describeTo(Description description)
-			{
-				description.appendText("a string with pattern \"").appendText(
-						String.valueOf(_pattern)).appendText("\"");
-
-			}
-
-			@Override
-			public boolean matchesSafely(String item)
-			{
-				return _pattern.matcher(item).matches();
-			}
-		};
-
-	}
 }
