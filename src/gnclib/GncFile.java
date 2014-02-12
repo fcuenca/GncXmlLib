@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -127,7 +128,7 @@ public class GncFile
 		return null;
 	}
 
-	public Transaction addTransaction(Date date, String description, double amount,
+	public Transaction addTransaction(Date date, String description, BigDecimal amount,
 			String sourceAccountId, String targetAccountId)
 	{
 		Transaction newTx = newTxElement(date, description, amount, sourceAccountId, targetAccountId);
@@ -139,7 +140,7 @@ public class GncFile
 		return newTx;
 	}
 
-	private Transaction newTxElement(Date date, String description, double amount, String sourceAccountId,
+	private Transaction newTxElement(Date date, String description, BigDecimal amount, String sourceAccountId,
 			String targetAccountId)
 	{
 		Transaction newTx = new Transaction();
@@ -165,14 +166,26 @@ public class GncFile
 		newTx.setCurrency(newCADCurrency());
 	}
 
-	private void setSplits(Transaction newTx, double amount, String sourceAccountId, String targetAccountId)
+	private void setSplits(Transaction newTx, BigDecimal amount, String sourceAccountId, String targetAccountId)
 	{
-		int amountAsInt = (int) (amount * 100);
+		int amountAsInt = amountInCents(amount);
 
 		Splits txSplits = new Splits();
 		txSplits.getSplit().add(newSplit(-1 * amountAsInt, targetAccountId));
 		txSplits.getSplit().add(newSplit(amountAsInt, sourceAccountId));
 		newTx.setSplits(txSplits);
+	}
+
+	private int amountInCents(BigDecimal amount)
+	{
+		try
+		{
+			return amount.multiply(new BigDecimal(100)).intValueExact();
+		}
+		catch (ArithmeticException e)
+		{
+			throw new RuntimeException("Amount has too many decimal digits: " + amount);
+		}
 	}
 
 	private Split newSplit(int amountAsInt, String accountId)

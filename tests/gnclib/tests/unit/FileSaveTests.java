@@ -10,6 +10,7 @@ import gnclib.GncFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
@@ -72,7 +73,7 @@ public class FileSaveTests
 	{
 		GncFile original = new GncFile(getClass().getResource("checkbook.xml").getPath());
 
-		Transaction tx = original.addTransaction(new Date(), "new tx", 1.0, "acc id", "acc id");
+		Transaction tx = original.addTransaction(new Date(), "new tx", new BigDecimal("1.0"), "acc id", "acc id");
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		original.saveTo(stream);

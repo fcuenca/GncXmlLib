@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 import gnclib.GncFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import org.gnucash.xml.gnc.Transaction;
@@ -33,7 +34,7 @@ public class TransactionCreationTests
 		@SuppressWarnings("deprecation")
 		Date date = new Date(2014 - 1900, 4, 10, 15, 35, 7);
 
-		_tx = _gnc.addTransaction(date, "Coffee w/John", -9.33,
+		_tx = _gnc.addTransaction(date, "Coffee w/John", new BigDecimal("-10.55"),
 				SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
 
 	}
@@ -73,8 +74,8 @@ public class TransactionCreationTests
 		assertThat(_tx.getSplits(), is(notNullValue()));
 		assertThat(_tx.getSplits().getSplit().size(), is(2));
 
-		assertSplitEquals(_tx.getSplits().getSplit().get(0), "933/100", TARGET_ACCOUNT_ID);
-		assertSplitEquals(_tx.getSplits().getSplit().get(1), "-933/100", SOURCE_ACCOUNT_ID);
+		assertSplitEquals(_tx.getSplits().getSplit().get(0), "1055/100", TARGET_ACCOUNT_ID);
+		assertSplitEquals(_tx.getSplits().getSplit().get(1), "-1055/100", SOURCE_ACCOUNT_ID);
 	}
 
 	@Test
@@ -88,9 +89,17 @@ public class TransactionCreationTests
 	{
 		int initialTxCount = _gnc.getTransactionCount();
 
-		_gnc.addTransaction(new Date(), "new tx", 10.5, SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
+		_gnc.addTransaction(new Date(), "new tx", new BigDecimal("10.5"), SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
 
 		assertThat(_gnc.getTransactionCount(), is(initialTxCount + 1));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void amounts_with_more_than_2_decimal_digits_are_rejected()
+	{
+		BigDecimal badAmount = new BigDecimal("10.5555");
+
+		_gnc.addTransaction(new Date(), "new tx", badAmount, SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
 	}
 
 	private void assertSplitEquals(Split split, String expectedAmount, String expectedAccountId)
