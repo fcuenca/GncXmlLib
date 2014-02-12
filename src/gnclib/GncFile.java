@@ -309,9 +309,6 @@ public class GncFile
 			{
 				output.close();
 			}
-			// gzipOutputStream.close(); //TODO: this goes in the caller =>
-			// saveTo(filename)
-
 		}
 		catch (JAXBException e)
 		{
