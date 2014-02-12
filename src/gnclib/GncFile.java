@@ -2,13 +2,13 @@ package gnclib;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
@@ -31,31 +31,15 @@ public class GncFile
 {
 	private GncV2 _gnc;
 	private Book _book;
+	private CountData _txCount;
 
 	public GncFile(String fileName) throws IOException
 	{
-		JAXBContext context;
 		try
 		{
-			File inputFile = new File(fileName);
+			InputStream stream = openXmlFile(fileName);
 
-			InputStream stream;
-
-			if (isGZipped(inputFile))
-			{
-				stream = new GZIPInputStream(new FileInputStream(inputFile));
-			}
-			else
-			{
-				stream = new FileInputStream(inputFile);
-			}
-
-			context = JAXBContext.newInstance(new Class[] { org.gnucash.xml.top.ObjectFactory.class,
-					org.gnucash.xml.ts.ObjectFactory.class });
-
-			Unmarshaller unmarshaller = context.createUnmarshaller();
-
-			_gnc = (GncV2) unmarshaller.unmarshal(stream);
+			_gnc = parseXml(stream);
 			_book = _gnc.getBook();
 
 		}
@@ -65,23 +49,83 @@ public class GncFile
 		}
 	}
 
+	private GncV2 parseXml(InputStream stream) throws JAXBException
+	{
+		JAXBContext context;
+
+		context = JAXBContext.newInstance(new Class[] { org.gnucash.xml.top.ObjectFactory.class,
+				org.gnucash.xml.ts.ObjectFactory.class });
+
+		Unmarshaller unmarshaller = context.createUnmarshaller();
+
+		return (GncV2) unmarshaller.unmarshal(stream);
+	}
+
+	private InputStream openXmlFile(String fileName) throws IOException, FileNotFoundException
+	{
+		File inputFile = new File(fileName);
+
+		if (isGZipped(inputFile))
+		{
+			return new GZIPInputStream(new FileInputStream(inputFile));
+		}
+		else
+		{
+			return new FileInputStream(inputFile);
+		}
+	}
+
 	public int getTransactionCount()
 	{
-		List<CountData> countData = _book.getCountData();
+		return getTxCountElement().getValue();
+	}
 
-		for (CountData count : countData)
+	private CountData getTxCountElement()
+	{
+		if (_txCount == null)
 		{
-			if (count.getType().equals("transaction"))
+			for (CountData count : _book.getCountData())
 			{
-				return count.getValue();
+				if (count.getType().equals("transaction"))
+				{
+					_txCount = count;
+					return _txCount;
+				}
+			}
+
+			throw new RuntimeException("Transaxtion CountData element not found. Malformed GNC file?");
+		}
+
+		return _txCount;
+	}
+
+	public Transaction getTransactionById(Id id)
+	{
+		for (Transaction t : _book.getTransaction())
+		{
+			if (t.getId().getValue() == id.getValue())
+			{
+				return t;
 			}
 		}
 
-		throw new RuntimeException("Transaxtion CountData element not found. Malformed GNC file?");
+		return null;
 	}
 
 	public Transaction addTransaction(Date date, String description, double amount,
 			String sourceAccountId, String targetAccountId)
+	{
+		Transaction newTx = newTxElement(date, description, amount, sourceAccountId, targetAccountId);
+
+		_book.getTransaction().add(newTx);
+
+		incrementTxCount();
+
+		return newTx;
+	}
+
+	private Transaction newTxElement(Date date, String description, double amount, String sourceAccountId,
+			String targetAccountId)
 	{
 		Transaction newTx = new Transaction();
 
@@ -92,11 +136,17 @@ public class GncFile
 		return newTx;
 	}
 
+	private void incrementTxCount()
+	{
+		CountData txCount = getTxCountElement();
+		txCount.setValue(txCount.getValue() + 1);
+	}
+
 	private void setBasicAttributes(Transaction newTx, String description)
 	{
 		newTx.setVersion("2.0.0");
 		newTx.setDescription(description);
-		newTx.setId(newGncId());
+		newTx.setId(newTrnId());
 		newTx.setCurrency(newCADCurrency());
 	}
 
@@ -162,11 +212,12 @@ public class GncFile
 		return magic == GZIPInputStream.GZIP_MAGIC;
 	}
 
-	private Id newGncId()
+	private Id newTrnId()
 	{
 		Id txId = new Id();
 		txId.setValue(UUID.randomUUID().toString().replace("-", ""));
 		txId.setType("guid");
 		return txId;
 	}
+
 }

@@ -1,9 +1,10 @@
 package gnclib.tests.unit;
 
-import static gnclib.tests.utils.RegexMatcher.matchesPattern;
 import static gnclib.tests.utils.GncIdMatcher.validSplitId;
 import static gnclib.tests.utils.GncIdMatcher.validTrnId;
+import static gnclib.tests.utils.RegexMatcher.matchesPattern;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import gnclib.GncFile;
@@ -18,18 +19,22 @@ import org.junit.Test;
 
 public class TransactionCreationTests
 {
+	private static final String TARGET_ACCOUNT_ID = "e31486ad3b2c6cdedccf135d13538b29";
+	private static final String SOURCE_ACCOUNT_ID = "64833494284bad5fb390e84d38c65a54";
+
 	private Transaction _tx;
+	private GncFile _gnc;
 
 	@Before
 	public void Setup() throws IOException
 	{
-		GncFile gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		_gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
 
 		@SuppressWarnings("deprecation")
 		Date date = new Date(2014 - 1900, 4, 10, 15, 35, 7);
 
-		_tx = gnc.addTransaction(date, "Coffee w/John", -9.33,
-				"64833494284bad5fb390e84d38c65a54", "e31486ad3b2c6cdedccf135d13538b29");
+		_tx = _gnc.addTransaction(date, "Coffee w/John", -9.33,
+				SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
 
 	}
 
@@ -37,8 +42,10 @@ public class TransactionCreationTests
 	public void basic_transaction_attributes_are_set()
 	{
 		assertThat(_tx.getVersion(), is("2.0.0"));
+
 		assertThat(_tx.getId(), is(notNullValue()));
 		assertThat(_tx.getId(), is(validTrnId()));
+
 		assertThat(_tx.getDescription(), is("Coffee w/John"));
 	}
 
@@ -66,8 +73,24 @@ public class TransactionCreationTests
 		assertThat(_tx.getSplits(), is(notNullValue()));
 		assertThat(_tx.getSplits().getSplit().size(), is(2));
 
-		assertSplitEquals(_tx.getSplits().getSplit().get(0), "933/100", "e31486ad3b2c6cdedccf135d13538b29");
-		assertSplitEquals(_tx.getSplits().getSplit().get(1), "-933/100", "64833494284bad5fb390e84d38c65a54");
+		assertSplitEquals(_tx.getSplits().getSplit().get(0), "933/100", TARGET_ACCOUNT_ID);
+		assertSplitEquals(_tx.getSplits().getSplit().get(1), "-933/100", SOURCE_ACCOUNT_ID);
+	}
+
+	@Test
+	public void new_transaction_added_to_file()
+	{
+		assertThat(_gnc.getTransactionById(_tx.getId()), is(sameInstance(_tx)));
+	}
+
+	@Test
+	public void transaction_count_is_incremented_on_adding_new_transaction()
+	{
+		int initialTxCount = _gnc.getTransactionCount();
+
+		_gnc.addTransaction(new Date(), "new tx", 10.5, SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
+
+		assertThat(_gnc.getTransactionCount(), is(initialTxCount + 1));
 	}
 
 	private void assertSplitEquals(Split split, String expectedAmount, String expectedAccountId)
