@@ -3,17 +3,21 @@ package gnclib;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.gnucash.xml.gnc.Book;
@@ -27,21 +31,33 @@ import org.gnucash.xml.trn.Id;
 import org.gnucash.xml.trn.Split;
 import org.gnucash.xml.trn.Splits;
 
+import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
+
 public class GncFile
 {
 	private GncV2 _gnc;
 	private Book _book;
 	private CountData _txCount;
+	private boolean _wasCompressed;
 
 	public GncFile(String fileName) throws IOException
 	{
+		InputStream stream = createInputStream(fileName);
+
+		initialize(stream);
+	}
+
+	public GncFile(InputStream stream)
+	{
+		initialize(stream);
+	}
+
+	private void initialize(InputStream stream)
+	{
 		try
 		{
-			InputStream stream = openXmlFile(fileName);
-
 			_gnc = parseXml(stream);
 			_book = _gnc.getBook();
-
 		}
 		catch (JAXBException e)
 		{
@@ -51,9 +67,7 @@ public class GncFile
 
 	private GncV2 parseXml(InputStream stream) throws JAXBException
 	{
-		JAXBContext context;
-
-		context = JAXBContext.newInstance(new Class[] { org.gnucash.xml.top.ObjectFactory.class,
+		JAXBContext context = JAXBContext.newInstance(new Class[] { org.gnucash.xml.top.ObjectFactory.class,
 				org.gnucash.xml.ts.ObjectFactory.class });
 
 		Unmarshaller unmarshaller = context.createUnmarshaller();
@@ -61,12 +75,13 @@ public class GncFile
 		return (GncV2) unmarshaller.unmarshal(stream);
 	}
 
-	private InputStream openXmlFile(String fileName) throws IOException, FileNotFoundException
+	private InputStream createInputStream(String fileName) throws IOException, FileNotFoundException
 	{
 		File inputFile = new File(fileName);
 
 		if (isGZipped(inputFile))
 		{
+			_wasCompressed = true;
 			return new GZIPInputStream(new FileInputStream(inputFile));
 		}
 		else
@@ -103,7 +118,7 @@ public class GncFile
 	{
 		for (Transaction t : _book.getTransaction())
 		{
-			if (t.getId().getValue() == id.getValue())
+			if (t.getId().getValue().equals(id.getValue()))
 			{
 				return t;
 			}
@@ -218,6 +233,77 @@ public class GncFile
 		txId.setValue(UUID.randomUUID().toString().replace("-", ""));
 		txId.setType("guid");
 		return txId;
+	}
+
+	/*
+	 * Solution to the namespace naming problem:
+	 * http://hwellmann.blogspot.ca/2011
+	 * /03/jaxb-marshalling-with-custom-namespace.html
+	 * 
+	 * TO ALLOW THE USE OF THE INTERNAL NAMESPACE PREFIX MAPPER CLASS:
+	 * 
+	 * - Open the Libraries tab of the Java Build Path project property window.
+	 * - Expand the JRE System Library entry. - Select "Access rules" and hit
+	 * the Edit button. - Click the Add button in the resulting dialog. - For
+	 * the new access rule, set the resolution to Accessible and the pattern to
+	 * "com/sun/xml/internal/**".
+	 */
+	public static class GncXmlPrefixMapper extends NamespacePrefixMapper
+	{
+
+		@Override
+		public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix)
+		{
+			if (namespaceUri.startsWith("http://www.gnucash.org/XML/"))
+				return namespaceUri.substring(
+						namespaceUri.lastIndexOf('/') + 1);
+			return suggestion;
+		}
+
+	}
+
+	public void saveTo(String fileName) throws IOException
+	{
+		FileOutputStream stream = new FileOutputStream(fileName);
+		saveTo(stream);
+		stream.close();
+	}
+
+	public void saveTo(OutputStream stream) throws IOException
+	{
+		JAXBContext context;
+
+		try
+		{
+			context = JAXBContext.newInstance(new Class[] {
+					org.gnucash.xml.top.ObjectFactory.class,
+					org.gnucash.xml.ts.ObjectFactory.class });
+
+			Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, new Boolean(true));
+			marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new GncXmlPrefixMapper());
+
+			OutputStream output = stream;
+
+			if (_wasCompressed)
+			{
+				output = new GZIPOutputStream(stream);
+			}
+
+			marshaller.marshal(_gnc, output);
+
+			if (_wasCompressed)
+			{
+				output.close();
+			}
+			// gzipOutputStream.close(); //TODO: this goes in the caller =>
+			// saveTo(filename)
+
+		}
+		catch (JAXBException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 }
