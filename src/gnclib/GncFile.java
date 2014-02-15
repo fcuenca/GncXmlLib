@@ -21,6 +21,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.gnucash.xml.gnc.Account;
 import org.gnucash.xml.gnc.Book;
 import org.gnucash.xml.gnc.CountData;
 import org.gnucash.xml.gnc.Transaction;
@@ -321,6 +322,16 @@ public class GncFile
 		{
 			throw new RuntimeException(e);
 		}
+	}
+
+	public Account findAccountByName(String accName)
+	{
+		for (Account acc : _book.getAccount())
+		{
+			if (acc.getName().equals(accName))
+				return acc;
+		}
+		return null;
 	}
 
 }
