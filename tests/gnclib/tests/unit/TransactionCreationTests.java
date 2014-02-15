@@ -102,6 +102,30 @@ public class TransactionCreationTests
 		_gnc.addTransaction(new Date(), "new tx", badAmount, SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void date_should_not_be_null()
+	{
+		_gnc.addTransaction(null, "new tx", new BigDecimal("10.5"), SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void amount_should_not_be_null()
+	{
+		_gnc.addTransaction(new Date(), "new tx", null, SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void source_account_should_not_be_null()
+	{
+		_gnc.addTransaction(new Date(), "new tx", new BigDecimal("10.5"), null, TARGET_ACCOUNT_ID);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void target_account_should_not_be_null()
+	{
+		_gnc.addTransaction(new Date(), "new tx", new BigDecimal("10.5"), SOURCE_ACCOUNT_ID, null);
+	}
+
 	private void assertSplitEquals(Split split, String expectedAmount, String expectedAccountId)
 	{
 		assertThat("split ID", split.getId(), is(validSplitId()));

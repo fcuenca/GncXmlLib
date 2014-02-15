@@ -131,6 +131,13 @@ public class GncFile
 	public Transaction addTransaction(Date date, String description, BigDecimal amount,
 			String sourceAccountId, String targetAccountId)
 	{
+		if (date == null || amount == null || sourceAccountId == null || targetAccountId == null)
+		{
+			String errorMsg = "GncFile.addTransaction(" +
+					date + ", " + amount + ", " + sourceAccountId + ", " + targetAccountId + ")";
+			throw new IllegalArgumentException(errorMsg);
+		}
+
 		Transaction newTx = newTxElement(date, description, amount, sourceAccountId, targetAccountId);
 
 		_book.getTransaction().add(newTx);
