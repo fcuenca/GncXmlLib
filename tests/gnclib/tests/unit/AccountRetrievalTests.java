@@ -7,12 +7,13 @@ import static org.junit.Assert.assertThat;
 import gnclib.GncFile;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.gnucash.xml.gnc.Account;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AccountLookupTests
+public class AccountRetrievalTests
 {
 	private GncFile _gnc;
 
@@ -36,5 +37,13 @@ public class AccountLookupTests
 	public void returns_null_if_name_cant_be_found()
 	{
 		assertNull(_gnc.findAccountByName("doesn't exist"));
+	}
+
+	@Test
+	public void can_retrieve_complete_account_list()
+	{
+		List<Account> accounts = _gnc.getAccounts();
+
+		assertThat(accounts.size(), is(8));
 	}
 }

@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -332,6 +333,11 @@ public class GncFile
 				return acc;
 		}
 		return null;
+	}
+
+	public List<Account> getAccounts()
+	{
+		return _book.getAccount();
 	}
 
 }
