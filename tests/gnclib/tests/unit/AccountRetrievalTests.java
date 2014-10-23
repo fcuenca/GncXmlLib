@@ -2,7 +2,7 @@ package gnclib.tests.unit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertNull;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import gnclib.GncFile;
 
@@ -36,7 +36,7 @@ public class AccountRetrievalTests
 	@Test
 	public void returns_null_if_name_cant_be_found()
 	{
-		assertNull(_gnc.findAccountByName("doesn't exist"));
+		assertThat(_gnc.findAccountByName("doesn't exist"), is(nullValue()));
 	}
 
 	@Test
