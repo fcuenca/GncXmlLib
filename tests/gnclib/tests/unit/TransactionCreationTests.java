@@ -29,7 +29,7 @@ public class TransactionCreationTests
 	@Before
 	public void Setup() throws IOException
 	{
-		_gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		_gnc = new GncFile(TestFiles.GNC_TEST_FILE);
 
 		@SuppressWarnings("deprecation")
 		Date date = new Date(2014 - 1900, 4, 10, 15, 35, 7);

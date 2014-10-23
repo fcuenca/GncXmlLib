@@ -20,7 +20,7 @@ public class AccountRetrievalTests
 	@Before
 	public void Setup() throws IOException
 	{
-		_gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		_gnc = new GncFile(TestFiles.GNC_TEST_FILE);
 	}
 
 	@Test

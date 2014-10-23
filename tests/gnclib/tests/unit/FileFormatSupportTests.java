@@ -15,7 +15,7 @@ public class FileFormatSupportTests
 	@Test
 	public void can_handle_uncompressed_gnc_xml_files() throws IOException
 	{
-		GncFile gnc = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		GncFile gnc = new GncFile(TestFiles.GNC_TEST_FILE);
 
 		assertThat(gnc.getTransactionCount(), is(2));
 	}
@@ -23,7 +23,7 @@ public class FileFormatSupportTests
 	@Test
 	public void can_handle_compressed_gnc_xml_files() throws IOException
 	{
-		GncFile gnc = new GncFile(getClass().getResource("checkbook.xml.gz").getPath());
+		GncFile gnc = new GncFile(TestFiles.GNC_TEST_FILE_COMPRESSED);
 
 		assertThat(gnc.getTransactionCount(), is(2));
 	}

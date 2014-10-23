@@ -23,7 +23,7 @@ public class FileSaveTests
 	@Test
 	public void file_can_be_saved_to_stream() throws IOException
 	{
-		GncFile original = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		GncFile original = new GncFile(TestFiles.GNC_TEST_FILE);
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		original.saveTo(stream);
@@ -36,7 +36,7 @@ public class FileSaveTests
 	@Test
 	public void on_save_proper_xml_namespaces_are_used() throws IOException
 	{
-		GncFile original = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		GncFile original = new GncFile(TestFiles.GNC_TEST_FILE);
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		original.saveTo(stream);
@@ -54,7 +54,7 @@ public class FileSaveTests
 	@Test
 	public void output_is_compressed_if_input_was_compressed() throws IOException
 	{
-		GncFile original = new GncFile(getClass().getResource("checkbook.xml.gz").getPath());
+		GncFile original = new GncFile(TestFiles.GNC_TEST_FILE_COMPRESSED);
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		original.saveTo(stream);
@@ -71,7 +71,7 @@ public class FileSaveTests
 	@Test
 	public void newly_added_transactions_are_saved() throws IOException
 	{
-		GncFile original = new GncFile(getClass().getResource("checkbook.xml").getPath());
+		GncFile original = new GncFile(TestFiles.GNC_TEST_FILE);
 
 		Transaction tx = original.addTransaction(new Date(), "new tx", new BigDecimal("1.0"), "acc id", "acc id");
 
