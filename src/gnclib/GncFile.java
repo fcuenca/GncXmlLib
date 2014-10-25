@@ -22,6 +22,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.gnucash.xml.act.Commodity;
+import org.gnucash.xml.act.Parent;
 import org.gnucash.xml.gnc.Account;
 import org.gnucash.xml.gnc.Book;
 import org.gnucash.xml.gnc.CountData;
@@ -30,7 +32,6 @@ import org.gnucash.xml.top.GncV2;
 import org.gnucash.xml.trn.Currency;
 import org.gnucash.xml.trn.DateEntered;
 import org.gnucash.xml.trn.DatePosted;
-import org.gnucash.xml.trn.Id;
 import org.gnucash.xml.trn.Split;
 import org.gnucash.xml.trn.Splits;
 
@@ -41,6 +42,7 @@ public class GncFile
 	private GncV2 _gnc;
 	private Book _book;
 	private CountData _txCount;
+	private CountData _accCount;
 	private boolean _wasCompressed;
 
 	public GncFile(String fileName) throws IOException
@@ -97,27 +99,46 @@ public class GncFile
 	{
 		return getTxCountElement().getValue();
 	}
+	
+	public int getAccountCount()
+	{
+		return getAccCountElement().getValue();
+	}
+
+	private CountData getAccCountElement()
+	{
+		if (_accCount == null)
+		{
+			_accCount = findCountDataForElement("account");
+		}
+
+		return _accCount;
+	}
+
+	private CountData findCountDataForElement(String elementName)
+	{
+		for (CountData count : _book.getCountData())
+		{
+			if (count.getType().equals(elementName))
+			{
+				return count;
+			}
+		}
+
+		throw new RuntimeException("CountData element not found for: " + elementName + ". Malformed GNC file?");
+	}
 
 	private CountData getTxCountElement()
 	{
 		if (_txCount == null)
 		{
-			for (CountData count : _book.getCountData())
-			{
-				if (count.getType().equals("transaction"))
-				{
-					_txCount = count;
-					return _txCount;
-				}
-			}
-
-			throw new RuntimeException("Transaxtion CountData element not found. Malformed GNC file?");
+			_txCount = findCountDataForElement("transaction");
 		}
 
 		return _txCount;
 	}
 
-	public Transaction getTransactionById(Id id)
+	public Transaction getTransactionById(org.gnucash.xml.trn.Id id)
 	{
 		for (Transaction t : _book.getTransaction())
 		{
@@ -140,7 +161,7 @@ public class GncFile
 			throw new IllegalArgumentException(errorMsg);
 		}
 
-		Transaction newTx = newTxElement(date, description, amount, sourceAccountId, targetAccountId);
+		Transaction newTx = newTransaction(date, description, amount, sourceAccountId, targetAccountId);
 
 		_book.getTransaction().add(newTx);
 
@@ -149,25 +170,31 @@ public class GncFile
 		return newTx;
 	}
 
-	private Transaction newTxElement(Date date, String description, BigDecimal amount, String sourceAccountId,
+	private Transaction newTransaction(Date date, String description, BigDecimal amount, String sourceAccountId,
 			String targetAccountId)
 	{
 		Transaction newTx = new Transaction();
 
-		setBasicAttributes(newTx, description);
+		setTxBasicAttributes(newTx, description);
 		setTxDates(newTx, date);
-		setSplits(newTx, amount, sourceAccountId, targetAccountId);
+		setTxSplits(newTx, amount, sourceAccountId, targetAccountId);
 
 		return newTx;
 	}
 
 	private void incrementTxCount()
 	{
-		CountData txCount = getTxCountElement();
-		txCount.setValue(txCount.getValue() + 1);
+		CountData count = getTxCountElement();
+		count.setValue(count.getValue() + 1);
 	}
 
-	private void setBasicAttributes(Transaction newTx, String description)
+	private void incrementAccountCount()
+	{
+		CountData count = getAccCountElement();
+		count.setValue(count.getValue() + 1);
+	}
+
+	private void setTxBasicAttributes(Transaction newTx, String description)
 	{
 		newTx.setVersion("2.0.0");
 		newTx.setDescription(description);
@@ -175,7 +202,7 @@ public class GncFile
 		newTx.setCurrency(newCADCurrency());
 	}
 
-	private void setSplits(Transaction newTx, BigDecimal amount, String sourceAccountId, String targetAccountId)
+	private void setTxSplits(Transaction newTx, BigDecimal amount, String sourceAccountId, String targetAccountId)
 	{
 		int amountAsInt = amountInCents(amount);
 
@@ -249,12 +276,20 @@ public class GncFile
 		return magic == GZIPInputStream.GZIP_MAGIC;
 	}
 
-	private Id newTrnId()
+	private org.gnucash.xml.trn.Id newTrnId()
 	{
-		Id txId = new Id();
-		txId.setValue(UUID.randomUUID().toString().replace("-", ""));
-		txId.setType("guid");
-		return txId;
+		org.gnucash.xml.trn.Id id = new org.gnucash.xml.trn.Id();
+		id.setValue(UUID.randomUUID().toString().replace("-", ""));
+		id.setType("guid");
+		return id;
+	}
+
+	private org.gnucash.xml.act.Id newAccountId()
+	{
+		org.gnucash.xml.act.Id id = new org.gnucash.xml.act.Id();
+		id.setValue(UUID.randomUUID().toString().replace("-", ""));
+		id.setType("guid");
+		return id;
 	}
 
 	/*
@@ -340,4 +375,66 @@ public class GncFile
 		return _book.getAccount();
 	}
 
+	public Account addSubAccount(String name, String code, Account parent)
+	{
+		if (parent == null || name == null || 
+				name.trim().isEmpty() || 
+				code == null || code.trim().isEmpty())
+		{
+			String errorMsg = "GncFile.addSubAccount(" + name + ", " + code + ", " + parent + ")";
+			throw new IllegalArgumentException(errorMsg);
+		}
+		
+		Account newAccount = newAccount(name, code, parent);
+		
+		_book.getAccount().add(newAccount);
+
+		incrementAccountCount();
+		
+		return newAccount;
+	}
+
+	private Account newAccount(String name, String code, Account parent)
+	{
+		Account acc = new Account();
+		
+		setAccountBasicAttr(acc, name, code);		
+		setAccInheritedAttr(acc, parent);
+		return acc;
+	}
+
+	private void setAccInheritedAttr(Account acc, Account parent)
+	{
+		acc.setParent(newAccParent(parent));
+		
+		acc.setType(parent.getType());
+
+		acc.setCommodity(newCommodityFromParent(parent));
+		
+		acc.setCommodityScu(parent.getCommodityScu());
+	}
+
+	private Commodity newCommodityFromParent(Account parent)
+	{
+		Commodity c = new Commodity();
+		c.setId(parent.getCommodity().getId());
+		c.setSpace(parent.getCommodity().getSpace());
+		return c;
+	}
+
+	private Parent newAccParent(Account parent)
+	{
+		Parent p = new Parent();
+		p.setType("guid");
+		p.setValue(parent.getId().getValue());
+		return p;
+	}
+
+	private void setAccountBasicAttr(Account acc, String name, String code)
+	{
+		acc.setVersion("2.0.0");
+		acc.setId(newAccountId());
+		acc.setName(name);
+		acc.setCode(code);
+	}
 }

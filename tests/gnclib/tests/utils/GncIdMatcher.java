@@ -2,7 +2,6 @@ package gnclib.tests.utils;
 
 import java.util.UUID;
 
-import org.gnucash.xml.trn.Id;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.internal.matchers.TypeSafeMatcher;
@@ -66,12 +65,12 @@ public final class GncIdMatcher
 
 	}
 
-	public static Matcher<Id> validTrnId()
+	public static Matcher<org.gnucash.xml.trn.Id> validTrnId()
 	{
-		return new MatcherBase<Id>()
+		return new MatcherBase<org.gnucash.xml.trn.Id>()
 		{
 			@Override
-			public boolean matchesSafely(Id item)
+			public boolean matchesSafely(org.gnucash.xml.trn.Id item)
 			{
 				return typeIsSetToGuid(item.getType()) && dashesHaveBeenRemoved(item.getValue())
 						&& valueIsValidUUIDstring(item.getValue());
@@ -85,6 +84,32 @@ public final class GncIdMatcher
 		{
 			@Override
 			public boolean matchesSafely(org.gnucash.xml.split.Id item)
+			{
+				return typeIsSetToGuid(item.getType()) && dashesHaveBeenRemoved(item.getValue())
+						&& valueIsValidUUIDstring(item.getValue());
+			}
+		};
+	}
+
+	public static Matcher<org.gnucash.xml.act.Id> validAccId()
+	{
+		return new MatcherBase<org.gnucash.xml.act.Id>()
+		{
+			@Override
+			public boolean matchesSafely(org.gnucash.xml.act.Id item)
+			{
+				return typeIsSetToGuid(item.getType()) && dashesHaveBeenRemoved(item.getValue())
+						&& valueIsValidUUIDstring(item.getValue());
+			}
+		};
+	}
+	
+	public static Matcher<org.gnucash.xml.act.Parent> validAccParentId()
+	{
+		return new MatcherBase<org.gnucash.xml.act.Parent>()
+		{
+			@Override
+			public boolean matchesSafely(org.gnucash.xml.act.Parent item)
 			{
 				return typeIsSetToGuid(item.getType()) && dashesHaveBeenRemoved(item.getValue())
 						&& valueIsValidUUIDstring(item.getValue());

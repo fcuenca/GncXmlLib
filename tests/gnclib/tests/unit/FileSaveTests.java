@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
+import org.gnucash.xml.gnc.Account;
 import org.gnucash.xml.gnc.Transaction;
 import org.junit.Test;
 
@@ -82,5 +83,23 @@ public class FileSaveTests
 
 		assertThat(saved.getTransactionCount(), is(original.getTransactionCount()));
 		assertThat(saved.getTransactionById(tx.getId()), is(notNullValue()));
+	}
+	
+	@Test
+	public void newly_added_accounts_are_saved() throws IOException
+	{
+		GncFile original = new GncFile(TestFiles.GNC_TEST_FILE);
+
+		Account parent = original.findAccountByName("Expenses");
+		
+		original.addSubAccount("New Account", "12344", parent);
+
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		original.saveTo(stream);
+
+		GncFile saved = new GncFile(new ByteArrayInputStream(stream.toByteArray()));
+
+		assertThat(saved.getAccountCount(), is(original.getAccountCount()));
+		assertThat(saved.findAccountByName("New Account"), is(notNullValue()));
 	}
 }
