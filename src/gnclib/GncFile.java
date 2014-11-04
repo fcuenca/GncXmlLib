@@ -369,6 +369,16 @@ public class GncFile
 		}
 		return null;
 	}
+	
+	public Account findAccountById(String accId)
+	{
+		for (Account acc : _book.getAccount())
+		{
+			if (acc.getId().getValue().equals(accId))
+				return acc;
+		}
+		return null;
+	}
 
 	public List<Account> getAccounts()
 	{

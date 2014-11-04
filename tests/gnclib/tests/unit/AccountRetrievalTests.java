@@ -34,9 +34,25 @@ public class AccountRetrievalTests
 	}
 
 	@Test
+	public void can_find_account_by_id()
+	{
+		Account acc = _gnc.findAccountById("e31486ad3b2c6cdedccf135d13538b29");
+
+		assertThat(acc, is(notNullValue()));
+		assertThat(acc.getName(), is("Expenses"));
+		assertThat(acc.getId().getValue(), is("e31486ad3b2c6cdedccf135d13538b29"));
+	}
+	
+	@Test
 	public void returns_null_if_name_cant_be_found()
 	{
 		assertThat(_gnc.findAccountByName("doesn't exist"), is(nullValue()));
+	}
+
+	@Test
+	public void returns_null_if_ID_cant_be_found()
+	{
+		assertThat(_gnc.findAccountById("doesn't exist"), is(nullValue()));
 	}
 
 	@Test
