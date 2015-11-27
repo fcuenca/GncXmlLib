@@ -11,6 +11,7 @@ import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -446,5 +447,27 @@ public class GncFile
 		acc.setId(newAccountId());
 		acc.setName(name);
 		acc.setCode(code);
+	}
+
+	public List<Transaction> findTransactionsForTargetAccount(String accName)
+	{
+		Account account = findAccountByName(accName);
+		
+		if(account == null)
+		{
+			throw new IllegalArgumentException(accName + " is not a valid account");
+		}
+		
+		ArrayList<Transaction> txList = new ArrayList<Transaction>();
+		
+		for (Transaction tx : _book.getTransaction())
+		{
+			if(tx.getSplits().getSplit().get(0).getAccount().getValue().equals(account.getId().getValue()))
+			{
+				txList.add(tx);
+			}
+		}
+		
+		return txList;
 	}
 }
