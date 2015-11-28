@@ -13,6 +13,9 @@ import org.junit.Test;
 
 public class TransactionRetrievalTests
 {
+	private static final String TARGET_ACCOUNT_ID = "e31486ad3b2c6cdedccf135d13538b29";
+	private static final String OTHER_ACCOUNT_ID = "5b34e5c992f4f0279c17ed2a19bc6d7f";
+
 	private GncFile _gnc;
 
 	@Before
@@ -25,7 +28,7 @@ public class TransactionRetrievalTests
 	@Test
 	public void can_find_transactions_for_account()
 	{
-		List<Transaction> txList = _gnc.findTransactionsForTargetAccount("Expenses");
+		List<Transaction> txList = _gnc.findTransactionsForTargetAccount(TARGET_ACCOUNT_ID);
 		
 		assertThat(txList.size(), is(1));
 	}
@@ -33,16 +36,8 @@ public class TransactionRetrievalTests
 	@Test
 	public void returns_empty_list_if_no_transactions_are_found()
 	{
-		List<Transaction> txList = _gnc.findTransactionsForTargetAccount("Assets");
+		List<Transaction> txList = _gnc.findTransactionsForTargetAccount(OTHER_ACCOUNT_ID);
 		
 		assertThat(txList.size(), is(0));
 	}
-
-
-
-	@Test(expected=IllegalArgumentException.class)
-	public void throws_exception_if_account_doesnt_exist()
-	{
-		_gnc.findTransactionsForTargetAccount("this will throw");
-	}	
 }

@@ -449,20 +449,13 @@ public class GncFile
 		acc.setCode(code);
 	}
 
-	public List<Transaction> findTransactionsForTargetAccount(String accName)
+	public List<Transaction> findTransactionsForTargetAccount(String accId)
 	{
-		Account account = findAccountByName(accName);
-		
-		if(account == null)
-		{
-			throw new IllegalArgumentException(accName + " is not a valid account");
-		}
-		
 		ArrayList<Transaction> txList = new ArrayList<Transaction>();
 		
 		for (Transaction tx : _book.getTransaction())
 		{
-			if(tx.getSplits().getSplit().get(0).getAccount().getValue().equals(account.getId().getValue()))
+			if(tx.getSplits().getSplit().get(0).getAccount().getValue().equals(accId))
 			{
 				txList.add(tx);
 			}
