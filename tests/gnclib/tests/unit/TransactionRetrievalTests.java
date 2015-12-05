@@ -40,4 +40,18 @@ public class TransactionRetrievalTests
 		
 		assertThat(txList.size(), is(0));
 	}
+	
+	@Test
+	public void can_find_transactions_matching_description()
+	{
+		assertThat(_gnc.findTransactionsMatching("Sa.*ry").size(), is(1));
+	}
+
+	@Test
+	public void returns_empty_list_when_theres_no_match()
+	{
+		assertThat(_gnc.findTransactionsMatching("NO MATCH").size(), is(0));
+	}
+	
+
 }

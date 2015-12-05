@@ -463,4 +463,19 @@ public class GncFile
 		
 		return txList;
 	}
+
+	public List<Transaction> findTransactionsMatching(String txDescRegex)
+	{
+		ArrayList<Transaction> result = new ArrayList<Transaction>();
+		
+		for (Transaction tx : _book.getTransaction())
+		{
+			if(tx.getDescription().matches(txDescRegex))
+			{
+				result.add(tx);
+			}
+		}
+		
+		return result;
+	}
 }
